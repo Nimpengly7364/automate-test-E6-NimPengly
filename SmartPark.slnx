@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartPark.Api/SmartPark.Api.csproj" />
+    <Project Path="src/SmartPark.ConsoleApp/SmartPark.ConsoleApp.csproj" />
+    <Project Path="src/SmartPark.Core/SmartPark.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SmartPark.Tests/SmartPark.Tests.csproj" />
+  </Folder>
+</Solution>

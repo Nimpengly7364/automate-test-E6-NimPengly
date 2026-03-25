@@ -1,0 +1,37 @@
+## .NET build output
+bin/
+obj/
+*.user
+*.suo
+*.cache
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.sln.DotSettings.user
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Test results & coverage
+TestResults/
+coverage-report/
+
+## SQLite database (regenerated on run)
+*.db
+*.db-shm
+*.db-wal
+
+## NuGet
+*.nupkg
+
+## Lecturer-only documents (distributed separately, not via git)
+1_SMARTPARK_APP_SPEC.md
+2_STUDENT_REPORT_TEMPLATE.md
+docs/*
+!docs/getting-started.md
+final_assignment_guideline/
+_lecturer_answer_key/
