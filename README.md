@@ -18,12 +18,17 @@ You should see `10.0.xxx`. If you get "command not found", restart your terminal
 
 ---
 
-## 2. Clone the Repository
+## 2. Choose an IDE (Optional but Recommended)
 
-```bash
-git clone <your-repo-url>
-cd automate_test_assignment
-```
+You can use any of the following IDEs for a better development experience:
+
+| IDE                    | Platform              | Download                           |
+| ---------------------- | --------------------- | ---------------------------------- |
+| **Visual Studio Code** | Windows, macOS, Linux | https://code.visualstudio.com      |
+| **Visual Studio**      | Windows, macOS        | https://visualstudio.microsoft.com |
+| **JetBrains Rider**    | Windows, macOS, Linux | https://www.jetbrains.com/rider    |
+
+> **Tip:** For VS Code, install the **C# Dev Kit** extension for full .NET support including IntelliSense, debugging, and test exploration.
 
 ---
 
@@ -141,25 +146,25 @@ docs/
 
 ## Common Issues
 
-| Problem | Solution |
-|---------|----------|
-| `dotnet` not found | Install .NET SDK and restart your terminal |
-| Build fails — missing packages | Run `dotnet restore SmartPark.slnx` |
-| No tests available | Normal until you add `[Fact]`/`[Theory]` methods |
+| Problem                               | Solution                                            |
+| ------------------------------------- | --------------------------------------------------- |
+| `dotnet` not found                    | Install .NET SDK and restart your terminal          |
+| Build fails — missing packages        | Run `dotnet restore SmartPark.slnx`                 |
+| No tests available                    | Normal until you add `[Fact]`/`[Theory]` methods    |
 | `NotImplementedException` on checkout | Implement `ParkingFeeCalculator` first (TDD Step 3) |
-| Database locked | Close other instances of the console app |
+| Database locked                       | Close other instances of the console app            |
 
 ---
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Build | `dotnet build SmartPark.slnx` |
-| Run console app | `dotnet run --project src/SmartPark.ConsoleApp` |
-| Run API | `dotnet run --project src/SmartPark.Api` |
-| Run all tests | `dotnet test SmartPark.slnx` |
-| Run specific tests | `dotnet test --filter "ClassName"` |
-| Code coverage | `dotnet test SmartPark.slnx --collect:"XPlat Code Coverage"` |
-| Reset demo data | Delete `smartpark.db` and re-run the app |
-| View TDD history | `git log --oneline` |
+| Task               | Command                                                      |
+| ------------------ | ------------------------------------------------------------ |
+| Build              | `dotnet build SmartPark.slnx`                                |
+| Run console app    | `dotnet run --project src/SmartPark.ConsoleApp`              |
+| Run API            | `dotnet run --project src/SmartPark.Api`                     |
+| Run all tests      | `dotnet test SmartPark.slnx`                                 |
+| Run specific tests | `dotnet test --filter "ClassName"`                           |
+| Code coverage      | `dotnet test SmartPark.slnx --collect:"XPlat Code Coverage"` |
+| Reset demo data    | Delete `smartpark.db` and re-run the app                     |
+| View TDD history   | `git log --oneline`                                          |
