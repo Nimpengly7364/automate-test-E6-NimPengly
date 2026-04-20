@@ -62,7 +62,30 @@ public class ParkingFeeCalculator
     {
         // TODO: Implement the 9-step fee calculation using TDD.
         // Write a failing test first (RED), then implement just enough to pass (GREEN).
-        throw new NotImplementedException(
-            "Implement this method using TDD — see the assignment spec for the 9-step calculation flow.");
+        var duration = checkOut - checkIn;
+
+        // Step 1: Zero duration (edge case)
+        if (duration.TotalMinutes <= 0)
+        {
+            return new ParkingFeeResult
+            {
+                TotalFee = 0
+            };
+        }
+
+        // Step 2: Temporary basic logic (TDD GREEN)
+        if (vehicleType == VehicleType.Car)
+        {
+            return new ParkingFeeResult
+            {
+                TotalFee = CarRatePerHour
+            };
+        }
+
+        // Temporary fallback (to avoid crash)
+        return new ParkingFeeResult
+        {
+            TotalFee = 0
+        };
     }
 }

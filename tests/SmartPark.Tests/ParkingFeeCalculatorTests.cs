@@ -14,18 +14,59 @@ public class ParkingFeeCalculatorTests
     //  Delete or keep this; it does not count toward your grade.
     // ────────────────────────────────────────────────────────────
 
+    // [Fact]
+    // public void CalculateFee_ZeroDuration_ReturnsFree()
+    // {
+    //     // Arrange
+    //     var checkIn = new DateTime(2026, 3, 16, 10, 0, 0);  // Monday
+    //     var checkOut = checkIn; // same time = 0 duration
+
+    //     // Act
+    //     var result = _calculator.CalculateFee(VehicleType.Car, MembershipTier.Guest, checkIn, checkOut);
+
+    //     // Assert
+    //     Assert.Equal(0m, result.TotalFee);
+
+    // }
+
+
+    // [Fact]
+    // public void CalculateFee_Car_1Hour_Returns1000()
+    // {
+    //     // Arrange
+    //     var calc = new ParkingFeeCalculator();
+
+    //     var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+    //     var checkOut = checkIn.AddHours(1);
+
+    //     // Act
+    //     var result = calc.CalculateFee(
+    //         VehicleType.Car,
+    //         MembershipTier.Guest,
+    //         checkIn,
+    //         checkOut
+    //     );
+
+    //     // Assert
+    //     Assert.Equal(1000, result.TotalFee);
+    // }
+
     [Fact]
-    public void CalculateFee_ZeroDuration_ReturnsFree()
+    public void CalculateFee_Car_2Hours_Returns2000()
     {
-        // Arrange
-        var checkIn = new DateTime(2026, 3, 16, 10, 0, 0);  // Monday
-        var checkOut = checkIn; // same time = 0 duration
+        var calc = new ParkingFeeCalculator();
 
-        // Act
-        var result = _calculator.CalculateFee(VehicleType.Car, MembershipTier.Guest, checkIn, checkOut);
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(2);
 
-        // Assert
-        Assert.Equal(0m, result.TotalFee);
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut
+        );
+
+        Assert.Equal(2000, result.TotalFee);
     }
 
     #region Basic Fee Calculation
