@@ -64,28 +64,36 @@ public class ParkingFeeCalculator
         // Write a failing test first (RED), then implement just enough to pass (GREEN).
         var duration = checkOut - checkIn;
 
-        // Step 1: Zero duration (edge case)
+        // Step 1: Zero duration
         if (duration.TotalMinutes <= 0)
         {
-            return new ParkingFeeResult
-            {
-                TotalFee = 0
-            };
+            return new ParkingFeeResult { TotalFee = 0 };
         }
 
-        // Step 2: Temporary basic logic (TDD GREEN)
-        if (vehicleType == VehicleType.Car)
+        // Step 2: Grace period
+        if (duration.TotalMinutes <= GracePeriodMinutes)
         {
-            return new ParkingFeeResult
-            {
-                TotalFee = CarRatePerHour
-            };
+            return new ParkingFeeResult { TotalFee = 0 };
         }
 
-        // Temporary fallback (to avoid crash)
+        // Step 3: Calculate billable hours
+        var billableMinutes = duration.TotalMinutes - GracePeriodMinutes;
+        decimal billableHours = (decimal)Math.Ceiling(billableMinutes / 60.0);
+
+        // Step 4: Get rate
+        decimal rate = vehicleType switch
+        {
+            VehicleType.Car => CarRatePerHour,
+            VehicleType.Motorcycle => MotorcycleRatePerHour,
+            _ => 0
+        };
+
+        // Step 5: Base fee
+        decimal fee = billableHours * rate;
+
         return new ParkingFeeResult
         {
-            TotalFee = 0
+            TotalFee = fee
         };
     }
 }
