@@ -54,15 +54,21 @@ public class ParkingFeeCalculatorTests
     [Fact]
     public void CalculateFee_Motorcycle_2Hours_Returns1000()
     {
+        // Arrange
         var calc = new ParkingFeeCalculator();
 
+        var start = new DateTime(2026, 1, 1, 8, 0, 0);
+        var end = start.AddHours(2);
+
+        // Act
         var result = calc.CalculateFee(
             VehicleType.Motorcycle,
             MembershipTier.Guest,
-            DateTime.Now,
-            DateTime.Now.AddHours(2)
+            start,
+            end
         );
 
+        // Assert
         Assert.Equal(1000, result.TotalFee);
     }
 
