@@ -52,50 +52,6 @@ public class ParkingFeeCalculator
     ///   8. Lost ticket: +20,000 KHR (not subject to discounts)
     ///   9. Total: baseFee + surcharge − discount + overnight + penalty (min 0)
     /// </remarks>
-    // public ParkingFeeResult CalculateFee(
-    //     VehicleType vehicleType,
-    //     MembershipTier membership,
-    //     DateTime checkIn,
-    //     DateTime checkOut,
-    //     bool isLostTicket = false,
-    //     bool isHoliday = false)
-    // {
-    //     // TODO: Implement the 9-step fee calculation using TDD.
-    //     // Write a failing test first (RED), then implement just enough to pass (GREEN).
-    //     var duration = checkOut - checkIn;
-
-    //     // Step 1: Zero duration
-    //     if (duration.TotalMinutes <= 0)
-    //     {
-    //         return new ParkingFeeResult { TotalFee = 0 };
-    //     }
-
-    //     // Step 2: Grace period
-    //     if (duration.TotalMinutes <= GracePeriodMinutes)
-    //     {
-    //         return new ParkingFeeResult { TotalFee = 0 };
-    //     }
-
-    //     // Step 3: Calculate billable hours
-    //     var billableMinutes = duration.TotalMinutes - GracePeriodMinutes;
-    //     decimal billableHours = (decimal)Math.Ceiling(billableMinutes / 60.0);
-
-    //     // Step 4: Get rate
-    //     decimal rate = vehicleType switch
-    //     {
-    //         VehicleType.Car => CarRatePerHour,
-    //         VehicleType.Motorcycle => MotorcycleRatePerHour,
-    //         _ => 0
-    //     };
-
-    //     // Step 5: Base fee
-    //     decimal fee = billableHours * rate;
-
-    //     return new ParkingFeeResult
-    //     {
-    //         TotalFee = fee
-    //     };
-    // }
     public ParkingFeeResult CalculateFee(
         VehicleType vehicleType,
         MembershipTier membership,
@@ -106,7 +62,39 @@ public class ParkingFeeCalculator
     {
         // TODO: Implement the 9-step fee calculation using TDD.
         // Write a failing test first (RED), then implement just enough to pass (GREEN).
-        throw new NotImplementedException(
-            "Implement this method using TDD — see the assignment spec for the 9-step calculation flow.");
+        var duration = checkOut - checkIn;
+
+        // Step 1: Zero duration
+        if (duration.TotalMinutes <= 0)
+        {
+            return new ParkingFeeResult { TotalFee = 0 };
+        }
+
+        // Step 2: Grace period
+        if (duration.TotalMinutes <= GracePeriodMinutes)
+        {
+            return new ParkingFeeResult { TotalFee = 0 };
+        }
+
+        // Step 3: Calculate billable hours
+        var billableMinutes = duration.TotalMinutes - GracePeriodMinutes;
+        decimal billableHours = (decimal)Math.Ceiling(billableMinutes / 60.0);
+
+        // Step 4: Get rate
+        decimal rate = vehicleType switch
+        {
+            VehicleType.Car => CarRatePerHour,
+            VehicleType.Motorcycle => MotorcycleRatePerHour,
+            _ => 0
+        };
+
+        // Step 5: Base fee
+        decimal fee = billableHours * rate;
+
+        return new ParkingFeeResult
+        {
+            TotalFee = fee
+        };
     }
+   
 }
