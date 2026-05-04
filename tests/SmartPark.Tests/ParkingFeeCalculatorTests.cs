@@ -52,21 +52,18 @@ public class ParkingFeeCalculatorTests
     // }
 
     [Fact]
-    public void CalculateFee_Car_2Hours_Returns2000()
+    public void CalculateFee_Motorcycle_2Hours_Returns1000()
     {
         var calc = new ParkingFeeCalculator();
 
-        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
-        var checkOut = checkIn.AddHours(2);
-
         var result = calc.CalculateFee(
-            VehicleType.Car,
+            VehicleType.Motorcycle,
             MembershipTier.Guest,
-            checkIn,
-            checkOut
+            DateTime.Now,
+            DateTime.Now.AddHours(2)
         );
 
-        Assert.Equal(2000, result.TotalFee);
+        Assert.Equal(1000, result.TotalFee);
     }
 
     #region Basic Fee Calculation
