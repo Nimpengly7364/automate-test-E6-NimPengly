@@ -7,84 +7,140 @@ namespace SmartPark.Tests.IntegrationTests;
 
 public class ParkingFlowIntegrationTests
 {
-    // ────────────────────────────────────────────────────────────
-    //  INTEGRATION TEST SETUP
-    //  Uses REAL components for business logic, and TEST DOUBLES
-    //  only for external boundaries:
-    //
-    //  Real objects:
-    //    ParkingFeeCalculator       — real (pure logic, no side effects)
-    //    InMemoryParkingRepository  — fake (working in-memory implementation)
-    //
-    //  Test doubles (via Moq, used as stubs here):
-    //    IPaymentGateway            — stub (always returns success)
-    //    INotificationService       — stub (does nothing)
-    //    IDateTimeProvider          — stub (returns controlled time)
-    //    IMembershipService         — stub (returns Guest for all)
-    // ────────────────────────────────────────────────────────────
-
-    private readonly ParkingFeeCalculator _feeCalculator = new();
-    private readonly InMemoryParkingRepository _repository = new();  // fake
-    private readonly Mock<IPaymentGateway> _paymentStub = new();
-    private readonly Mock<INotificationService> _notificationStub = new();
     private readonly ParkingSessionManager _manager;
+    private readonly Mock<IDateTimeProvider> _clock = new();
+    private readonly DateTime _baseTime = new(2025, 1, 1, 10, 0, 0);
 
-    // Fake clock — set this in each test to control time
-    private DateTime _currentTime = new(2026, 3, 16, 10, 0, 0); // Monday 10 AM
+    private DateTime _now;
 
     public ParkingFlowIntegrationTests()
     {
-        var dateTimeStub = new Mock<IDateTimeProvider>();
-        dateTimeStub.Setup(d => d.Now).Returns(() => _currentTime);
+        _now = _baseTime;
 
-        var membershipStub = new Mock<IMembershipService>();
-        membershipStub.Setup(m => m.GetMembershipTier(It.IsAny<string>())).Returns(MembershipTier.Guest);
+        _clock.Setup(c => c.Now).Returns(() => _now);
 
-        _paymentStub.Setup(p => p.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
-            .ReturnsAsync(true);
+        var payment = new Mock<IPaymentGateway>();
+        payment.Setup(p => p.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+               .ReturnsAsync(true);
+
+        var notification = new Mock<INotificationService>();
+        notification.Setup(n => n.SendReceiptAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask);
+
+        var membership = new Mock<IMembershipService>();
+        membership.Setup(m => m.GetMembershipTier(It.IsAny<string>()))
+                  .Returns(MembershipTier.Guest);
+
+        var repo = new InMemoryParkingRepository();
+        var calc = new ParkingFeeCalculator();
 
         _manager = new ParkingSessionManager(
-            _feeCalculator,
-            _paymentStub.Object,
-            _notificationStub.Object,
-            membershipStub.Object,
-            _repository,          // real fake, not a Moq object
-            dateTimeStub.Object);
+            calc,
+            payment.Object,
+            notification.Object,
+            membership.Object,
+            repo,
+            _clock.Object
+        );
     }
 
-    // ────────────────────────────────────────────────────────────
-    //  EXAMPLE TEST — shows how to advance time between operations.
-    //  Delete or keep this; it does not count toward your grade.
-    // ────────────────────────────────────────────────────────────
+    private void SetTime(DateTime time) => _now = time;
 
     [Fact]
-    public async Task FullFlow_CheckInAndCheckOut_CalculatesCorrectFee()
+    public async Task FullFlow_Car_2Hours_Returns2000()
     {
-        // Arrange — check in at 10:00 AM
-        _currentTime = new DateTime(2026, 3, 16, 10, 0, 0); // Monday
-        var ticket = await _manager.CheckInAsync("TEST-001", VehicleType.Car);
+        SetTime(_baseTime);
 
-        // Act — check out at 12:30 PM (2.5 hours later → 2 billable hours after grace)
-        _currentTime = new DateTime(2026, 3, 16, 12, 30, 0);
-        var result = await _manager.CheckOutAsync(ticket.TicketId, "012-345-678");
+        var ticket = await _manager.CheckInAsync("CAR-001", VehicleType.Car);
 
-        // Assert — Car: 2 hours × 1,000 = 2,000 KHR
-        Assert.Equal(2_000m, result.TotalFee);
+        SetTime(_baseTime.AddHours(2));
+
+        var result = await _manager.CheckOutAsync(ticket.TicketId, "123");
+
+        Assert.Equal(2000m, result.TotalFee);
     }
 
-    #region Full Parking Flow
-    // End-to-end scenarios from check-in through check-out
-    #endregion
+    [Fact]
+    public async Task FullFlow_GracePeriod_Returns0()
+    {
+        SetTime(_baseTime);
 
-    #region Multiple Vehicles
-    // Test concurrent parking sessions and their lifecycle
-    #endregion
+        var ticket = await _manager.CheckInAsync("CAR-002", VehicleType.Car);
 
-    #region Error Recovery
-    // Test system state consistency after error conditions
-    #endregion
+        SetTime(_baseTime.AddMinutes(20));
 
-    #region Edge-to-Edge Scenarios
-    // Test complex combinations of fee modifiers working together
-    #endregion
+        var result = await _manager.CheckOutAsync(ticket.TicketId, "123");
+
+        Assert.Equal(0m, result.TotalFee);
+    }
+
+    [Fact]
+    public async Task FullFlow_LostTicket_AddsPenalty()
+    {
+        SetTime(_baseTime);
+
+        var ticket = await _manager.CheckInAsync("CAR-003", VehicleType.Car);
+
+        SetTime(_baseTime.AddHours(1));
+
+        var result = await _manager.CheckOutAsync(
+            ticket.TicketId,
+            "123",
+            isLostTicket: true
+        );
+
+        Assert.Equal(21000m, result.TotalFee);
+    }
+
+    [Fact]
+    public async Task FullFlow_Weekend_Adds20Percent()
+    {
+        SetTime(new DateTime(2025, 1, 4, 10, 0, 0)); // Saturday
+
+        var ticket = await _manager.CheckInAsync("CAR-004", VehicleType.Car);
+
+        SetTime(new DateTime(2025, 1, 4, 12, 0, 0));
+
+        var result = await _manager.CheckOutAsync(ticket.TicketId, "123");
+
+        Assert.Equal(2400m, result.TotalFee);
+    }
+
+    [Fact]
+    public async Task FullFlow_NotificationFails_CheckoutStillSucceeds()
+    {
+        var notification = new Mock<INotificationService>();
+        notification.Setup(n => n.SendReceiptAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .ThrowsAsync(new Exception("fail"));
+
+        var payment = new Mock<IPaymentGateway>();
+        payment.Setup(p => p.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+               .ReturnsAsync(true);
+
+        var membership = new Mock<IMembershipService>();
+        membership.Setup(m => m.GetMembershipTier(It.IsAny<string>()))
+                  .Returns(MembershipTier.Guest);
+
+        var repo = new InMemoryParkingRepository();
+        var calc = new ParkingFeeCalculator();
+
+        var manager = new ParkingSessionManager(
+            calc,
+            payment.Object,
+            notification.Object,
+            membership.Object,
+            repo,
+            _clock.Object
+        );
+
+        SetTime(_baseTime);
+
+        var ticket = await manager.CheckInAsync("CAR-005", VehicleType.Car);
+
+        SetTime(_baseTime.AddHours(2));
+
+        var result = await manager.CheckOutAsync(ticket.TicketId, "123");
+
+        Assert.Equal(2000m, result.TotalFee);
+    }
 }
