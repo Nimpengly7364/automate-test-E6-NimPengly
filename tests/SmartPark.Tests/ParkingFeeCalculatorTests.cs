@@ -59,19 +59,17 @@ public class ParkingFeeCalculatorTests
     [Fact]
     public void CalculateFee_GracePeriod_30Minutes_ReturnsFree()
     {
-        // Arrange
         var calc = new ParkingFeeCalculator();
-        var checkIn = DateTime.Now;
+
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
         var checkOut = checkIn.AddMinutes(30);
 
-        // Act
         var result = calc.CalculateFee(
             VehicleType.Car,
             MembershipTier.Guest,
             checkIn,
             checkOut);
 
-        // Assert
         Assert.Equal(0m, result.TotalFee);
     }
     #endregion
@@ -79,21 +77,21 @@ public class ParkingFeeCalculatorTests
     #region Duration Rounding
     // Test how partial hours are rounded for billing
     [Fact]
-public void CalculateFee_31Minutes_Returns1000()
-{
-    var calc = new ParkingFeeCalculator();
-    var checkIn = DateTime.Now;
-    var checkOut = checkIn.AddMinutes(31);
-    
+    public void CalculateFee_31Minutes_Returns1000()
+    {
+        var calc = new ParkingFeeCalculator();
 
-    var result = calc.CalculateFee(
-        VehicleType.Car,
-        MembershipTier.Guest,
-        checkIn,
-        checkOut);
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddMinutes(31);
 
-    Assert.Equal(1000m, result.TotalFee);
-}
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        Assert.Equal(1000m, result.TotalFee);
+    }
     #endregion
 
     #region Daily Cap
