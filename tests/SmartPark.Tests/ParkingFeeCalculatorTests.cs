@@ -30,27 +30,9 @@ public class ParkingFeeCalculatorTests
     // }
 
 
-    // [Fact]
-    // public void CalculateFee_Car_1Hour_Returns1000()
-    // {
-    //     // Arrange
-    //     var calc = new ParkingFeeCalculator();
-
-    //     var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
-    //     var checkOut = checkIn.AddHours(1);
-
-    //     // Act
-    //     var result = calc.CalculateFee(
-    //         VehicleType.Car,
-    //         MembershipTier.Guest,
-    //         checkIn,
-    //         checkOut
-    //     );
-
-    //     // Assert
-    //     Assert.Equal(1000, result.TotalFee);
-    // }
-
+    #region Basic Fee Calculation
+    // Test basic hourly rates for each vehicle type
+    // Consider using [Theory] with [InlineData] for multiple scenarios
     [Fact]
     public void CalculateFee_Motorcycle_2Hours_Returns1000()
     {
@@ -71,14 +53,27 @@ public class ParkingFeeCalculatorTests
         // Assert
         Assert.Equal(1000, result.TotalFee);
     }
-
-    #region Basic Fee Calculation
-    // Test basic hourly rates for each vehicle type
-    // Consider using [Theory] with [InlineData] for multiple scenarios
     #endregion
 
     #region Grace Period
-    // Test the free parking window and its boundaries
+    [Fact]
+    public void CalculateFee_GracePeriod_30Minutes_ReturnsFree()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+        var checkIn = DateTime.Now;
+        var checkOut = checkIn.AddMinutes(30);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.Equal(0m, result.TotalFee);
+    }
     #endregion
 
     #region Duration Rounding
