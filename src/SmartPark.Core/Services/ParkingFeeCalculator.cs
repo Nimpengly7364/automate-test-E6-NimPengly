@@ -35,33 +35,32 @@ public class ParkingFeeCalculator
     private const decimal LostTicketFee = 20000m; // penalty for lost ticket
 
     public ParkingFeeResult CalculateFee(
-        VehicleType vehicleType,
-        MembershipTier membership,
-        DateTime checkIn,
-        DateTime checkOut,
-        bool isLostTicket = false,
-        bool isHoliday = false)
+    VehicleType vehicleType,
+    MembershipTier membership,
+    DateTime checkIn,
+    DateTime checkOut,
+    bool isLostTicket = false,
+    bool isHoliday = false)
     {
-        // Validate time: check-out must be after check-in
         if (checkOut <= checkIn)
             throw new ArgumentException("Check-out must be after check-in");
 
         var duration = checkOut - checkIn;
 
         // =========================
-        // GRACE PERIOD (FREE PARKING)
+        // GRACE PERIOD
         // =========================
-        // if (duration.TotalMinutes <= GraceMinutes)
-        // {
-        //     return new ParkingFeeResult
-        //     {
-        //         BaseFee = 0,
-        //         TotalFee = isLostTicket ? LostTicketFee : 0
-        //     };
-        // }
+        if (duration.TotalMinutes <= GraceMinutes)
+        {
+            return new ParkingFeeResult
+            {
+                BaseFee = 0,
+                TotalFee = isLostTicket ? LostTicketFee : 0
+            };
+        }
 
         // =========================
-        // GET RATE BASED ON VEHICLE TYPE
+        // RATE BY VEHICLE TYPE
         // =========================
         decimal rate = vehicleType switch
         {
@@ -71,7 +70,6 @@ public class ParkingFeeCalculator
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        // Maximum charge limit per vehicle type
         decimal cap = vehicleType switch
         {
             VehicleType.Motorcycle => MotorcycleCap,
@@ -80,24 +78,28 @@ public class ParkingFeeCalculator
             _ => 0
         };
 
-        // Calculate billable hours (round up after grace period)
-        decimal hours = (decimal)Math.Ceiling((duration.TotalMinutes - GraceMinutes) / 60.0);
+        // =========================
+        // BILLABLE HOURS
+        // =========================
+        decimal billableMinutes = (decimal)duration.TotalMinutes - GraceMinutes;
+        decimal hours = Math.Ceiling(billableMinutes / 60m);
+
         decimal baseFee = Math.Min(hours * rate, cap);
 
         // =========================
-        // SURCHARGE (Weekend / Holiday)
+        // SURCHARGE
         // =========================
         decimal surcharge = 0;
 
         if (isHoliday)
-            surcharge = baseFee * HolidayRate; // holiday has highest priority
+            surcharge = baseFee * HolidayRate;
         else if (checkIn.DayOfWeek == DayOfWeek.Saturday || checkIn.DayOfWeek == DayOfWeek.Sunday)
             surcharge = baseFee * WeekendRate;
 
         decimal subtotal = baseFee + surcharge;
 
         // =========================
-        // MEMBERSHIP DISCOUNT
+        // DISCOUNT
         // =========================
         decimal discountRate = membership switch
         {
@@ -110,21 +112,22 @@ public class ParkingFeeCalculator
         decimal discount = subtotal * discountRate;
 
         // =========================
-        // OVERNIGHT FEE RULE
+        // OVERNIGHT FEE
         // =========================
         decimal overnight = checkIn.Hour < OvernightHour && checkOut.Hour >= OvernightHour
             ? OvernightFee
             : 0;
 
         // =========================
-        // LOST TICKET PENALTY
+        // LOST TICKET
         // =========================
         decimal penalty = isLostTicket ? LostTicketFee : 0;
 
-        // FINAL TOTAL
+        // =========================
+        // TOTAL
+        // =========================
         decimal total = subtotal - discount + overnight + penalty;
 
-        // Ensure fee never goes negative
         if (total < 0) total = 0;
 
         return new ParkingFeeResult

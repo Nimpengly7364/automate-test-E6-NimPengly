@@ -84,6 +84,7 @@ public void CalculateFee_31Minutes_Returns1000()
     var calc = new ParkingFeeCalculator();
     var checkIn = DateTime.Now;
     var checkOut = checkIn.AddMinutes(31);
+    
 
     var result = calc.CalculateFee(
         VehicleType.Car,
