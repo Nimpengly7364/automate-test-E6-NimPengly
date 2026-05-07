@@ -412,5 +412,33 @@ public class ParkingFeeCalculatorTests
         // Assert
         Assert.True(suv.TotalFee >= motorcycle.TotalFee);
     }
+
+    [Property]
+public void CalculateFee_PlatinumMember_ShouldPayLessThanGuest(int hours)
+{
+    // Arrange
+    var calc = new ParkingFeeCalculator();
+
+    hours = Math.Abs(hours % 12) + 1;
+
+    var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+    var checkOut = checkIn.AddHours(hours);
+
+    // Act
+    var guest = calc.CalculateFee(
+        VehicleType.Car,
+        MembershipTier.Guest,
+        checkIn,
+        checkOut);
+
+    var platinum = calc.CalculateFee(
+        VehicleType.Car,
+        MembershipTier.Platinum,
+        checkIn,
+        checkOut);
+
+    // Assert
+    Assert.True(platinum.TotalFee <= guest.TotalFee);
+}
     #endregion
 }
