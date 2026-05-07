@@ -214,7 +214,8 @@ public class ParkingFeeCalculatorTests
         Assert.Equal(1600m, result.TotalFee);
     }
 
-public void CalculateFee_SilverMember_Gets10PercentDiscount()
+    [Fact]
+    public void CalculateFee_SilverMember_Gets10PercentDiscount()
     {
         // Arrange
         var calc = new ParkingFeeCalculator();
@@ -232,6 +233,27 @@ public void CalculateFee_SilverMember_Gets10PercentDiscount()
         // Assert
         Assert.Equal(800m, result.TotalFee);
     }
+
+    public void CalculateFee_PlatinumMember_Gets30PercentDiscount()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(2);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Platinum,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.Equal(600m, result.TotalFee);
+    }
+
+
     #endregion
 
     #region Lost Ticket
