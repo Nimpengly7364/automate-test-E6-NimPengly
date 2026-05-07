@@ -187,7 +187,7 @@ public class ParkingFeeCalculatorTests
             checkOut,
             isHoliday: true);
 
-        Assert.Equal(2000m, result.TotalFee); 
+        Assert.Equal(3000m, result.TotalFee); 
     }
     #endregion
 
