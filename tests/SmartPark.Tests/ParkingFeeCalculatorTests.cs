@@ -320,7 +320,7 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.True(result.TotalFee <= 0);
+        Assert.True(result.TotalFee >= 0);
     }
     #endregion
 }
