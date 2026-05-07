@@ -214,6 +214,7 @@ public class ParkingFeeCalculatorTests
         Assert.Equal(1600m, result.TotalFee);
     }
 
+// test silver member discount
     [Fact]
     public void CalculateFee_SilverMember_Gets10PercentDiscount()
     {
@@ -234,6 +235,7 @@ public class ParkingFeeCalculatorTests
         Assert.Equal(1800m, result.TotalFee);
     }
 
+// test platinum member discount
     [Fact]
     public void CalculateFee_PlatinumMember_Gets30PercentDiscount()
     {
@@ -301,6 +303,8 @@ public class ParkingFeeCalculatorTests
     #region Property-Based Tests
     // Write at least 5 FsCheck properties that must hold for ALL valid inputs
     // You may need custom Arbitrary<T> for generating valid DateTime pairs
+
+    // Test that fees are never negative regardless of input
     [Property]
     public void CalculateFee_TotalFee_ShouldNeverBeNegative(int hours)
     {
@@ -322,5 +326,34 @@ public class ParkingFeeCalculatorTests
         // Assert
         Assert.True(result.TotalFee >= 0);
     }
+
+// Test that longer parking durations do not result in lower fees
+    [Property]
+    public void CalculateFee_LongerDuration_ShouldNotCostLess(int hours1, int hours2)
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        hours1 = Math.Abs(hours1 % 10) + 1;
+        hours2 = hours1 + Math.Abs(hours2 % 10) + 1;
+
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+
+        var shorter = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkIn.AddHours(hours1));
+
+        var longer = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkIn.AddHours(hours2));
+
+        // Assert
+        Assert.True(longer.TotalFee >= shorter.TotalFee);
+    }
+
     #endregion
 }
