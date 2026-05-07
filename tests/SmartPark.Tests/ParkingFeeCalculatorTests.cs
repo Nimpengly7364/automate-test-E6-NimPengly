@@ -29,30 +29,36 @@ public class ParkingFeeCalculatorTests
 
     // }
 
-
     #region Basic Fee Calculation
     // Test basic hourly rates for each vehicle type
     // Consider using [Theory] with [InlineData] for multiple scenarios
-    [Fact]
-    public void CalculateFee_Motorcycle_2Hours_Returns1000()
+
+    [Theory]
+    [InlineData(VehicleType.Motorcycle, 2, 1000)]
+    [InlineData(VehicleType.Car, 2, 2000)]
+    [InlineData(VehicleType.SUV, 2, 3000)]
+    public void CalculateFee_BasicHourlyRates_ReturnExpectedFee(
+        VehicleType vehicleType,
+        int hours,
+        decimal expectedFee)
     {
         // Arrange
         var calc = new ParkingFeeCalculator();
 
-        var start = new DateTime(2026, 1, 1, 8, 0, 0);
-        var end = start.AddHours(2);
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(hours);
 
         // Act
         var result = calc.CalculateFee(
-            VehicleType.Motorcycle,
+            vehicleType,
             MembershipTier.Guest,
-            start,
-            end
-        );
+            checkIn,
+            checkOut);
 
         // Assert
-        Assert.Equal(1000, result.TotalFee);
+        Assert.Equal(expectedFee, result.TotalFee);
     }
+
     #endregion
 
     #region Grace Period
@@ -96,7 +102,6 @@ public class ParkingFeeCalculatorTests
 
     #region Daily Cap
     // Test that fees respect maximum daily limits per vehicle type
-
     [Fact]
     public void CalculateFee_Car24Hours_AppliesDailyCap()
     {
@@ -116,7 +121,6 @@ public class ParkingFeeCalculatorTests
         // Assert
         Assert.Equal(8000m, result.TotalFee);
     }
-
     #endregion
 
 
@@ -141,13 +145,10 @@ public class ParkingFeeCalculatorTests
         // Assert
         Assert.Equal(5000m, result.TotalFee);
     }
-
-
     #endregion
 
     #region Weekend Surcharge
     // Test the percentage-based surcharge on specific days
-
     [Fact]
     public void CalculateFee_Weekend_Adds20PercentSurcharge()
     {
@@ -193,7 +194,6 @@ public class ParkingFeeCalculatorTests
 
     #region Membership Discounts
     // Test discount tiers and what amounts they apply to
-
     [Fact]
     public void CalculateFee_GoldMember_Gets20PercentDiscount()
     {
