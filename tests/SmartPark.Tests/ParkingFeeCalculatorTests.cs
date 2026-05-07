@@ -259,26 +259,43 @@ public class ParkingFeeCalculatorTests
     #region Lost Ticket
     // Test the penalty and how it interacts with other fee modifiers
     [Fact]
-public void CalculateFee_LostTicket_AddsPenalty()
-{
-    var calc = new ParkingFeeCalculator();
+    public void CalculateFee_LostTicket_AddsPenalty()
+    {
+        var calc = new ParkingFeeCalculator();
 
-    var checkIn = new DateTime(2026, 1, 1, 10, 0, 0);
-    var checkOut = checkIn.AddHours(2);
+        var checkIn = new DateTime(2026, 1, 1, 10, 0, 0);
+        var checkOut = checkIn.AddHours(2);
 
-    var result = calc.CalculateFee(
-        VehicleType.Car,
-        MembershipTier.Guest,
-        checkIn,
-        checkOut,
-        isLostTicket: true);
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut,
+            isLostTicket: true);
 
-    Assert.Equal(22000m, result.TotalFee);
-}
+        Assert.Equal(22000m, result.TotalFee);
+    }
     #endregion
 
     #region Edge Cases
     // Test invalid inputs and boundary conditions
+    [Fact]
+    public void CalculateFee_NegativeDuration_ThrowsException()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        var checkIn = new DateTime(2026, 1, 1, 10, 0, 0);
+        var checkOut = checkIn.AddHours(-2);
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            calc.CalculateFee(
+                VehicleType.Car,
+                MembershipTier.Guest,
+                checkIn,
+                checkOut));
+    }
     #endregion
 
     #region Property-Based Tests
