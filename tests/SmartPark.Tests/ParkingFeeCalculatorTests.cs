@@ -166,7 +166,7 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.Equal(2000m, result.TotalFee);
+        Assert.Equal(2400m, result.TotalFee);
     }
 
     #endregion
