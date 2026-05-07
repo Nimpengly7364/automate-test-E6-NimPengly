@@ -289,7 +289,7 @@ public class ParkingFeeCalculatorTests
         var checkOut = checkIn.AddHours(-2);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<ArgumentException>(() =>
             calc.CalculateFee(
                 VehicleType.Car,
                 MembershipTier.Guest,
