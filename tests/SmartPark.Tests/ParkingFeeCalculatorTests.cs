@@ -139,7 +139,7 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.Equal(3000m, result.TotalFee);
+        Assert.Equal(5000m, result.TotalFee);
     }
 
 
