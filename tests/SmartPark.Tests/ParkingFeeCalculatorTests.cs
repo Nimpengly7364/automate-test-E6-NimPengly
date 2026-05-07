@@ -187,12 +187,33 @@ public class ParkingFeeCalculatorTests
             checkOut,
             isHoliday: true);
 
-        Assert.Equal(3000m, result.TotalFee); 
+        Assert.Equal(3000m, result.TotalFee);
     }
     #endregion
 
     #region Membership Discounts
     // Test discount tiers and what amounts they apply to
+
+    [Fact]
+    public void CalculateFee_GoldMember_Gets20PercentDiscount()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(2);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Gold,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.Equal(1600m, result.TotalFee);
+    }
+
     #endregion
 
     #region Lost Ticket
