@@ -104,8 +104,8 @@ public class ParkingFeeCalculator
         decimal discountRate = membership switch
         {
             MembershipTier.Silver => 0.10m,
-            MembershipTier.Gold => 0.25m,
-            MembershipTier.Platinum => 0.40m,
+            MembershipTier.Gold => 0.20m,
+            MembershipTier.Platinum => 0.30m,
             _ => 0m
         };
 
