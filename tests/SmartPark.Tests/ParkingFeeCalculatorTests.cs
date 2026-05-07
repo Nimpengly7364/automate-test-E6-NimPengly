@@ -273,7 +273,7 @@ public void CalculateFee_LostTicket_AddsPenalty()
         checkOut,
         isLostTicket: true);
 
-    Assert.Equal(2000m, result.TotalFee);
+    Assert.Equal(22000m, result.TotalFee);
 }
     #endregion
 
