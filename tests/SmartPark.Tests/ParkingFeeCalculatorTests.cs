@@ -301,5 +301,26 @@ public class ParkingFeeCalculatorTests
     #region Property-Based Tests
     // Write at least 5 FsCheck properties that must hold for ALL valid inputs
     // You may need custom Arbitrary<T> for generating valid DateTime pairs
+    [Property]
+    public void CalculateFee_TotalFee_ShouldNeverBeNegative(int hours)
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        hours = Math.Abs(hours % 24) + 1;
+
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(hours);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.True(result.TotalFee <= 0);
+    }
     #endregion
 }
