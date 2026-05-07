@@ -96,6 +96,29 @@ public class ParkingFeeCalculatorTests
 
     #region Daily Cap
     // Test that fees respect maximum daily limits per vehicle type
+    #region Daily Cap
+
+    [Fact]
+    public void CalculateFee_Car24Hours_AppliesDailyCap()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        var checkIn = new DateTime(2026, 1, 1, 0, 0, 0);
+        var checkOut = checkIn.AddHours(24);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.Equal(8000m, result.TotalFee);
+    }
+
+    #endregion
     #endregion
 
     #region Overnight Fee
