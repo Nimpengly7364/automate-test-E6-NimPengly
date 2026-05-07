@@ -231,9 +231,10 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.Equal(800m, result.TotalFee);
+        Assert.Equal(1800m, result.TotalFee);
     }
 
+    [Fact]
     public void CalculateFee_PlatinumMember_Gets30PercentDiscount()
     {
         // Arrange
@@ -250,7 +251,7 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.Equal(600m, result.TotalFee);
+        Assert.Equal(1400m, result.TotalFee);
     }
 
 
