@@ -214,7 +214,7 @@ public class ParkingFeeCalculatorTests
         Assert.Equal(1600m, result.TotalFee);
     }
 
-// test silver member discount
+    // test silver member discount
     [Fact]
     public void CalculateFee_SilverMember_Gets10PercentDiscount()
     {
@@ -235,7 +235,7 @@ public class ParkingFeeCalculatorTests
         Assert.Equal(1800m, result.TotalFee);
     }
 
-// test platinum member discount
+    // test platinum member discount
     [Fact]
     public void CalculateFee_PlatinumMember_Gets30PercentDiscount()
     {
@@ -327,7 +327,7 @@ public class ParkingFeeCalculatorTests
         Assert.True(result.TotalFee >= 0);
     }
 
-// Test that longer parking durations do not result in lower fees
+    // Test that longer parking durations do not result in lower fees
     [Property]
     public void CalculateFee_LongerDuration_ShouldNotCostLess(int hours1, int hours2)
     {
@@ -355,34 +355,62 @@ public class ParkingFeeCalculatorTests
         Assert.True(longer.TotalFee >= shorter.TotalFee);
     }
 
-// Test that lost ticket penalty is always greater than the normal fee for the same duration
-[Property]
-public void CalculateFee_LostTicket_ShouldAlwaysAddPenalty(int hours)
-{
-    // Arrange
-    var calc = new ParkingFeeCalculator();
+    // Test that lost ticket penalty is always greater than the normal fee for the same duration
+    [Property]
+    public void CalculateFee_LostTicket_ShouldAlwaysAddPenalty(int hours)
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
 
-    hours = Math.Abs(hours % 24) + 1;
+        hours = Math.Abs(hours % 24) + 1;
 
-    var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
-    var checkOut = checkIn.AddHours(hours);
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(hours);
 
-    // Act
-    var normal = calc.CalculateFee(
-        VehicleType.Car,
-        MembershipTier.Guest,
-        checkIn,
-        checkOut);
+        // Act
+        var normal = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
 
-    var lost = calc.CalculateFee(
-        VehicleType.Car,
-        MembershipTier.Guest,
-        checkIn,
-        checkOut,
-        isLostTicket: true);
+        var lost = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut,
+            isLostTicket: true);
 
-    // Assert
-    Assert.True(lost.TotalFee > normal.TotalFee);
-}
+        // Assert
+        Assert.True(lost.TotalFee > normal.TotalFee);
+    }
+
+    [Property]
+    public void CalculateFee_SUV_ShouldNotBeCheaperThanMotorcycle(int hours)
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        hours = Math.Abs(hours % 12) + 1;
+
+        var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+        var checkOut = checkIn.AddHours(hours);
+
+        // Act
+        var motorcycle = calc.CalculateFee(
+            VehicleType.Motorcycle,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        var suv = calc.CalculateFee(
+            VehicleType.SUV,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.True(suv.TotalFee >= motorcycle.TotalFee);
+    }
     #endregion
 }
