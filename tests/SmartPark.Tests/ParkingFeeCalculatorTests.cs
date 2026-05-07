@@ -355,5 +355,34 @@ public class ParkingFeeCalculatorTests
         Assert.True(longer.TotalFee >= shorter.TotalFee);
     }
 
+// Test that lost ticket penalty is always greater than the normal fee for the same duration
+[Property]
+public void CalculateFee_LostTicket_ShouldAlwaysAddPenalty(int hours)
+{
+    // Arrange
+    var calc = new ParkingFeeCalculator();
+
+    hours = Math.Abs(hours % 24) + 1;
+
+    var checkIn = new DateTime(2026, 1, 1, 8, 0, 0);
+    var checkOut = checkIn.AddHours(hours);
+
+    // Act
+    var normal = calc.CalculateFee(
+        VehicleType.Car,
+        MembershipTier.Guest,
+        checkIn,
+        checkOut);
+
+    var lost = calc.CalculateFee(
+        VehicleType.Car,
+        MembershipTier.Guest,
+        checkIn,
+        checkOut,
+        isLostTicket: true);
+
+    // Assert
+    Assert.True(lost.TotalFee > normal.TotalFee);
+}
     #endregion
 }
