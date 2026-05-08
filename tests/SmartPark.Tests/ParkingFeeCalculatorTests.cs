@@ -121,8 +121,28 @@ public class ParkingFeeCalculatorTests
         // Assert
         Assert.Equal(8000m, result.TotalFee);
     }
-    #endregion
 
+    // Test that the daily cap is correctly applied for SUVs, which have a higher cap than cars
+    [Fact]
+    public void CalculateFee_SUV24Hours_AppliesDailyCap()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        var checkIn = new DateTime(2026, 1, 1, 0, 0, 0);
+        var checkOut = checkIn.AddHours(24);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.SUV,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut);
+
+        // Assert
+        Assert.Equal(12000m, result.TotalFee);
+    }
+    #endregion
 
     #region Overnight Fee
     // Test the flat fee applied for sessions that extend into late hours#region Overnight Fee
@@ -188,6 +208,28 @@ public class ParkingFeeCalculatorTests
             checkOut,
             isHoliday: true);
 
+        Assert.Equal(3000m, result.TotalFee);
+    }
+    // Test that the holiday surcharge is applied on top of the weekend surcharge when both conditions are met
+    [Fact]
+    public void CalculateFee_HolidayWeekend_UsesHolidayRate()
+    {
+        // Arrange
+        var calc = new ParkingFeeCalculator();
+
+        // Saturday
+        var checkIn = new DateTime(2026, 1, 3, 10, 0, 0);
+        var checkOut = checkIn.AddHours(2);
+
+        // Act
+        var result = calc.CalculateFee(
+            VehicleType.Car,
+            MembershipTier.Guest,
+            checkIn,
+            checkOut,
+            isHoliday: true);
+
+        // Assert
         Assert.Equal(3000m, result.TotalFee);
     }
     #endregion
@@ -305,6 +347,7 @@ public class ParkingFeeCalculatorTests
     // You may need custom Arbitrary<T> for generating valid DateTime pairs
 
     // Test that fees are never negative regardless of input
+    [Trait("Category", "Property")]
     [Property]
     public void CalculateFee_TotalFee_ShouldNeverBeNegative(int hours)
     {
@@ -328,6 +371,7 @@ public class ParkingFeeCalculatorTests
     }
 
     // Test that longer parking durations do not result in lower fees
+    [Trait("Category", "Property")]
     [Property]
     public void CalculateFee_LongerDuration_ShouldNotCostLess(int hours1, int hours2)
     {
@@ -356,6 +400,7 @@ public class ParkingFeeCalculatorTests
     }
 
     // Test that lost ticket penalty is always greater than the normal fee for the same duration
+    [Trait("Category", "Property")]
     [Property]
     public void CalculateFee_LostTicket_ShouldAlwaysAddPenalty(int hours)
     {
@@ -385,6 +430,7 @@ public class ParkingFeeCalculatorTests
         Assert.True(lost.TotalFee > normal.TotalFee);
     }
 
+    [Trait("Category", "Property")]
     [Property]
     public void CalculateFee_SUV_ShouldNotBeCheaperThanMotorcycle(int hours)
     {
@@ -413,6 +459,8 @@ public class ParkingFeeCalculatorTests
         Assert.True(suv.TotalFee >= motorcycle.TotalFee);
     }
 
+    // Test that platinum members always pay less than or equal to guests for the same parking session
+    [Trait("Category", "Property")]
     [Property]
     public void CalculateFee_PlatinumMember_ShouldPayLessThanGuest(int hours)
     {
