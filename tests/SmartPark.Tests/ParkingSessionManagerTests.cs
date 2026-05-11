@@ -342,10 +342,79 @@ public class ParkingSessionManagerTests
                     It.IsAny<decimal>()),
             Times.Never);
     }
-    
+
     #endregion
 
     #region Verify Interaction Order
     // Verify that dependencies are called in the correct sequence
-    #endregion
+    [Fact]
+    public async Task CheckOutAsync_ValidFlow_VerifyCorrectOrder()
+    {
+        // Arrange
+        var ticketId = "TK-005";
+
+        var ticket = new ParkingTicket
+        {
+
+            Vehicle = new Vehicle
+            {
+                LicensePlate = "6IJ-8888",
+                Type = VehicleType.Car
+            },
+
+            CheckInTime = new DateTime(2026, 3, 16, 7, 0, 0),
+            CheckOutTime = null
+        };
+
+        var sequence = new MockSequence();
+
+        _repoStub.InSequence(sequence)
+            .Setup(r => r.GetTicketByIdAsync(ticketId))
+            .ReturnsAsync(ticket);
+
+        _paymentStub.InSequence(sequence)
+            .Setup(p => p.ProcessPaymentAsync(
+                It.IsAny<string>(),
+                It.IsAny<decimal>()))
+            .ReturnsAsync(true);
+
+        _repoStub.InSequence(sequence)
+            .Setup(r => r.UpdateTicketAsync(It.IsAny<ParkingTicket>()))
+            .Returns(Task.CompletedTask);
+
+        _notificationStub.InSequence(sequence)
+            .Setup(n => n.SendReceiptAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        _dateTimeStub.Setup(d => d.Now)
+            .Returns(new DateTime(2026, 3, 16, 9, 0, 0));
+
+        // Act
+        await _manager.CheckOutAsync(
+            ticketId,
+            "012345678",
+            false,
+            false);
+
+        // Assert
+        _paymentStub.Verify(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()),
+            Times.Once);
+
+        _repoStub.Verify(r =>
+            r.UpdateTicketAsync(It.IsAny<ParkingTicket>()),
+            Times.Once);
+
+        _notificationStub.Verify(n =>
+                n.SendReceiptAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()),
+            Times.Once);
+    }
 }
+    #endregion
+
