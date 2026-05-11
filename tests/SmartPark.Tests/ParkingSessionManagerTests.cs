@@ -169,7 +169,7 @@ public class ParkingSessionManagerTests
 
     #region CheckOut — Payment Failure
     // Test behavior when the payment step fails
-     [Fact]
+    [Fact]
     public async Task CheckOutAsync_PaymentFails_ThrowException()
     {
         // Arrange
@@ -222,7 +222,7 @@ public class ParkingSessionManagerTests
 
     #region CheckOut — Notification Failure
     // Test what happens when sending the receipt fails
-     [Fact]
+    [Fact]
     public async Task CheckOutAsync_NotificationFails_CheckoutStillSucceeds()
     {
         // Arrange
@@ -282,6 +282,67 @@ public class ParkingSessionManagerTests
 
     #region CheckOut — Validation
     // Test check-out error scenarios for missing or invalid tickets
+    [Fact]
+    public async Task CheckOutAsync_TicketNotFound_ThrowException()
+    {
+        // Arrange
+        var ticketId = "INVALID";
+
+        _repoStub.Setup(r => r.GetTicketByIdAsync(ticketId))
+            .ReturnsAsync((ParkingTicket?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _manager.CheckOutAsync(
+                ticketId,
+                "012345678",
+                false,
+                false));
+
+        _paymentStub.Verify(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task CheckOutAsync_AlreadyCheckedOut_ThrowException()
+    {
+        // Arrange
+        var ticketId = "TK-004";
+
+        var ticket = new ParkingTicket
+        {
+
+            Vehicle = new Vehicle
+            {
+                LicensePlate = "5GH-7777",
+                Type = VehicleType.Car
+            },
+
+            CheckInTime = new DateTime(2026, 3, 16, 8, 0, 0),
+
+            CheckOutTime = new DateTime(2026, 3, 16, 10, 0, 0)
+        };
+
+        _repoStub.Setup(r => r.GetTicketByIdAsync(ticketId))
+            .ReturnsAsync(ticket);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _manager.CheckOutAsync(
+                ticketId,
+                "012345678",
+                false,
+                false));
+
+        _paymentStub.Verify(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()),
+            Times.Never);
+    }
     #endregion
 
     #region Verify Interaction Order
