@@ -85,6 +85,25 @@ public class ParkingSessionManagerTests
 
     #region CheckIn — Validation
     // Test check-in error scenarios and verify side effects
+    [Fact]
+    public async Task CheckInAsync_DuplicateCheckIn_ThrowException()
+    {
+        // Arrange
+        var existingTicket = new ParkingTicket
+        {
+            Vehicle = new Vehicle { LicensePlate = "2AB-1234" },
+        };
+
+        _repoStub.Setup(r => r.GetActiveTicketByPlateAsync("2AB-1234"))
+            .ReturnsAsync(existingTicket);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _manager.CheckInAsync("2AB-1234", VehicleType.Car));
+
+        _repoStub.Verify(r => r.SaveTicketAsync(It.IsAny<ParkingTicket>()), Times.Never);
+    }
+
     #endregion
 
     #region CheckOut — Happy Path
