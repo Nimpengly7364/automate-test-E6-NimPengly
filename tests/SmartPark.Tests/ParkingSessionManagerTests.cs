@@ -108,6 +108,63 @@ public class ParkingSessionManagerTests
 
     #region CheckOut — Happy Path
     // Test successful check-out with payment and notification
+    [Fact]
+    public async Task CheckOutAsync_ValidTicket_ProcessPaymentAndSendReceipt()
+    {
+        // Arrange
+        var ticketId = "TK-001";
+
+        var ticket = new ParkingTicket
+        {
+            Vehicle = new Vehicle
+            {
+                LicensePlate = "2AB-1234",
+                Type = VehicleType.Car
+            },
+
+            CheckInTime = new DateTime(2026, 3, 16, 8, 0, 0),
+            CheckOutTime = null
+        };
+
+        _repoStub.Setup(r => r.GetTicketByIdAsync(ticketId))
+            .ReturnsAsync(ticket);
+
+        _dateTimeStub.Setup(d => d.Now)
+            .Returns(new DateTime(2026, 3, 16, 10, 0, 0));
+
+        _paymentStub.Setup(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _manager.CheckOutAsync(
+            ticketId,
+            "012345678",
+            false,
+            false);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.TotalFee >= 0);
+
+        _paymentStub.Verify(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()),
+            Times.Once);
+
+        _repoStub.Verify(r =>
+                r.UpdateTicketAsync(It.IsAny<ParkingTicket>()),
+            Times.Once);
+
+        _notificationStub.Verify(n =>
+                n.SendReceiptAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()),
+            Times.Once);
+    }
     #endregion
 
     #region CheckOut — Payment Failure
