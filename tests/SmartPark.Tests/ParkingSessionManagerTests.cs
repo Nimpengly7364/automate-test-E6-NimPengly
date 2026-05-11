@@ -222,6 +222,62 @@ public class ParkingSessionManagerTests
 
     #region CheckOut — Notification Failure
     // Test what happens when sending the receipt fails
+     [Fact]
+    public async Task CheckOutAsync_NotificationFails_CheckoutStillSucceeds()
+    {
+        // Arrange
+        var ticketId = "TK-003";
+
+        var ticket = new ParkingTicket
+        {
+            Vehicle = new Vehicle
+            {
+                LicensePlate = "4EF-9999",
+                Type = VehicleType.SUV
+            },
+
+            CheckInTime = new DateTime(2026, 3, 16, 9, 0, 0),
+            CheckOutTime = null
+        };
+
+        _repoStub.Setup(r => r.GetTicketByIdAsync(ticketId))
+            .ReturnsAsync(ticket);
+
+        _dateTimeStub.Setup(d => d.Now)
+            .Returns(new DateTime(2026, 3, 16, 12, 0, 0));
+
+        _paymentStub.Setup(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()))
+            .ReturnsAsync(true);
+
+        _notificationStub.Setup(n =>
+                n.SendReceiptAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+            .ThrowsAsync(new Exception("SMS failed"));
+
+        // Act
+        var result = await _manager.CheckOutAsync(
+            ticketId,
+            "012345678",
+            false,
+            false);
+
+        // Assert
+        Assert.NotNull(result);
+
+        _paymentStub.Verify(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()),
+            Times.Once);
+
+        _repoStub.Verify(r =>
+            r.UpdateTicketAsync(It.IsAny<ParkingTicket>()),
+            Times.Once);
+    }
     #endregion
 
     #region CheckOut — Validation
