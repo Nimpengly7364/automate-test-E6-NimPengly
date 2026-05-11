@@ -263,7 +263,7 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(2000m, result.TotalFee);
     }
 
-// ────────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────
     // MULTIPLE VEHICLES
     // Check in 3 vehicles and check out 1
     // Verify the others remain active
@@ -393,5 +393,74 @@ public class ParkingFlowIntegrationTests
         Assert.NotNull(activeTicket);
     }
 
+    // ────────────────────────────────────────────────────────────
+    // EDGE TO EDGE
+    // Overnight + Weekend + Gold Membership
+    // ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FullFlow_WeekendOvernightGoldMember_CalculatesCorrectFee()
+    {
+        // Arrange
+
+        // Saturday 8 PM
+        SetTime(new DateTime(2025, 1, 4, 20, 0, 0));
+
+        var payment = new Mock<IPaymentGateway>();
+
+        payment.Setup(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()))
+               .ReturnsAsync(true);
+
+        var notification = new Mock<INotificationService>();
+
+        notification.Setup(n =>
+                n.SendReceiptAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                    .Returns(Task.CompletedTask);
+
+        // Gold member
+        var membership = new Mock<IMembershipService>();
+
+        membership.Setup(m =>
+                m.GetMembershipTier(It.IsAny<string>()))
+                  .Returns(MembershipTier.Gold);
+
+        var repo = new InMemoryParkingRepository();
+
+        var manager = new ParkingSessionManager(
+            new ParkingFeeCalculator(),
+            payment.Object,
+            notification.Object,
+            membership.Object,
+            repo,
+            _clock.Object);
+
+        var ticket = await manager.CheckInAsync(
+            "VIP-001",
+            VehicleType.Car);
+
+        // Saturday 11 PM
+        SetTime(new DateTime(2025, 1, 4, 23, 0, 0));
+
+        // Act
+        var result = await manager.CheckOutAsync(
+            ticket.TicketId,
+            "123");
+
+        // Calculation:
+        // Base = 3,000
+        // Weekend surcharge 20% = 600
+        // Subtotal = 3,600
+        // Gold discount 25% = 900
+        // After discount = 2,700
+        // Overnight fee = 2,000
+        // Total = 4,700
+        Assert.Equal(4700m, result.TotalFee);
+
+    }
 }
 

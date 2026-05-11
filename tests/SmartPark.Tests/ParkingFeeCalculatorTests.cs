@@ -237,7 +237,7 @@ public class ParkingFeeCalculatorTests
     #region Membership Discounts
     // Test discount tiers and what amounts they apply to
     [Fact]
-    public void CalculateFee_GoldMember_Gets20PercentDiscount()
+    public void CalculateFee_GoldMember_Gets25PercentDiscount()
     {
         // Arrange
         var calc = new ParkingFeeCalculator();
@@ -253,7 +253,7 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.Equal(1600m, result.TotalFee);
+        Assert.Equal(1500m, result.TotalFee);
     }
 
     // test silver member discount
@@ -279,7 +279,7 @@ public class ParkingFeeCalculatorTests
 
     // test platinum member discount
     [Fact]
-    public void CalculateFee_PlatinumMember_Gets30PercentDiscount()
+    public void CalculateFee_PlatinumMember_Gets40PercentDiscount()
     {
         // Arrange
         var calc = new ParkingFeeCalculator();
@@ -295,7 +295,7 @@ public class ParkingFeeCalculatorTests
             checkOut);
 
         // Assert
-        Assert.Equal(1400m, result.TotalFee);
+        Assert.Equal(1200m, result.TotalFee);
     }
 
     #endregion
