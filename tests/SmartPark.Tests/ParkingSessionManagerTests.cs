@@ -169,6 +169,55 @@ public class ParkingSessionManagerTests
 
     #region CheckOut — Payment Failure
     // Test behavior when the payment step fails
+     [Fact]
+    public async Task CheckOutAsync_PaymentFails_ThrowException()
+    {
+        // Arrange
+        var ticketId = "TK-002";
+
+        var ticket = new ParkingTicket
+        {
+            Vehicle = new Vehicle
+            {
+                LicensePlate = "3CD-5678",
+                Type = VehicleType.Car
+            },
+
+            CheckInTime = new DateTime(2026, 3, 16, 8, 0, 0),
+            CheckOutTime = null
+        };
+
+        _repoStub.Setup(r => r.GetTicketByIdAsync(ticketId))
+            .ReturnsAsync(ticket);
+
+        _dateTimeStub.Setup(d => d.Now)
+            .Returns(new DateTime(2026, 3, 16, 11, 0, 0));
+
+        _paymentStub.Setup(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()))
+            .ReturnsAsync(false);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() =>
+            _manager.CheckOutAsync(
+                ticketId,
+                "012345678",
+                false,
+                false));
+
+        _repoStub.Verify(r =>
+            r.UpdateTicketAsync(It.IsAny<ParkingTicket>()),
+            Times.Never);
+
+        _notificationStub.Verify(n =>
+                n.SendReceiptAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()),
+            Times.Never);
+    }
+
     #endregion
 
     #region CheckOut — Notification Failure
