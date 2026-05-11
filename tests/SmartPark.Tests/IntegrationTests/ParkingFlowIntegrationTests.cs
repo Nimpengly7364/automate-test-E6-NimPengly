@@ -80,10 +80,8 @@ public class ParkingFlowIntegrationTests
         _now = time;
     }
 
-    // ────────────────────────────────────────────────────────────
-    // FULL FLOW — NORMAL CHECK IN + CHECK OUT
-    // Verify 2-hour car parking = 2,000 KHR
-    // ────────────────────────────────────────────────────────────
+    #region Full Parking Flow Tests
+    // Test the entire flow from check-in to check-out
 
     [Fact]
     public async Task FullFlow_Car_2Hours_Returns2000()
@@ -107,12 +105,10 @@ public class ParkingFlowIntegrationTests
         // Assert
         Assert.Equal(2000m, result.TotalFee);
     }
+    #endregion
 
-    // ────────────────────────────────────────────────────────────
-    // GRACE PERIOD
-    // Parking less than or equal to 30 min is free
-    // ────────────────────────────────────────────────────────────
-
+    #region Edge Cases
+    // Test edge cases like grace period, lost ticket, weekend surcharge, etc.
     [Fact]
     public async Task FullFlow_GracePeriod_Returns0()
     {
@@ -134,12 +130,10 @@ public class ParkingFlowIntegrationTests
         // Assert
         Assert.Equal(0m, result.TotalFee);
     }
+    #endregion
 
-    // ────────────────────────────────────────────────────────────
-    // LOST TICKET
-    // Lost ticket should add 20,000 KHR penalty
-    // ────────────────────────────────────────────────────────────
-
+    #region Complex Scenarios
+    // Test complex scenarios like lost ticket with grace period, overnight + weekend + membership, etc
     [Fact]
     public async Task FullFlow_LostTicket_AddsPenalty()
     {
@@ -165,12 +159,10 @@ public class ParkingFlowIntegrationTests
         // Total = 21,000
         Assert.Equal(21000m, result.TotalFee);
     }
+    #endregion
 
-    // ────────────────────────────────────────────────────────────
-    // WEEKEND SURCHARGE
-    // Saturday/Sunday adds 20%
-    // ────────────────────────────────────────────────────────────
-
+    #region Combined Scenarios
+    // Test combinations of rules together to verify they interact correctly
     [Fact]
     public async Task FullFlow_Weekend_Adds20Percent()
     {
@@ -196,12 +188,9 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(2400m, result.TotalFee);
     }
 
-    // ────────────────────────────────────────────────────────────
-    // GRACEFUL DEGRADATION
-    // Checkout should still succeed even if
-    // notification service fails
-    // ────────────────────────────────────────────────────────────
+    #endregion
 
+    #region Graceful Degradation
     [Fact]
     public async Task FullFlow_NotificationFails_CheckoutStillSucceeds()
     {
@@ -263,12 +252,10 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(2000m, result.TotalFee);
     }
 
-    // ────────────────────────────────────────────────────────────
-    // MULTIPLE VEHICLES
-    // Check in 3 vehicles and check out 1
-    // Verify the others remain active
-    // ────────────────────────────────────────────────────────────
+    #endregion
 
+    #region Multiple Vehicles
+    // Test multiple vehicles checking in and out to verify state management and no cross-contamination of data
     [Fact]
     public async Task FullFlow_MultipleVehicles_TwoRemainActive()
     {
@@ -307,11 +294,10 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(2000m, result2.TotalFee);
         Assert.Equal(2000m, result3.TotalFee);
     }
+    #endregion
 
-    // ────────────────────────────────────────────────────────────
-    // DUPLICATE CHECK IN
-    // Same vehicle cannot check in twice
-    // ────────────────────────────────────────────────────────────
+    #region Duplicate Check-In
+    // Test that checking in with the same license plate while an active ticket exists throws an error
 
     [Fact]
     public async Task FullFlow_DuplicateCheckIn_ThrowsException()
@@ -329,14 +315,9 @@ public class ParkingFlowIntegrationTests
                 "DUP-001",
                 VehicleType.Car));
     }
-
-
-    // ────────────────────────────────────────────────────────────
-    // FAILED PAYMENT
-    // Failed payment should NOT complete checkout
-    // Ticket must remain active
-    // ────────────────────────────────────────────────────────────
-
+    #endregion
+    #region Failed Payment
+    // Test that if payment fails during checkout, the ticket remains active and can be retried
     [Fact]
     public async Task FullFlow_FailedPayment_TicketRemainsActive()
     {
@@ -392,11 +373,10 @@ public class ParkingFlowIntegrationTests
 
         Assert.NotNull(activeTicket);
     }
+    #endregion
 
-    // ────────────────────────────────────────────────────────────
-    // EDGE TO EDGE
-    // Overnight + Weekend + Gold Membership
-    // ────────────────────────────────────────────────────────────
+    #region Overnight + Weekend + Membership
+    // Test a complex scenario with overnight parking on a weekend for a Gold member to verify all
 
     [Fact]
     public async Task FullFlow_WeekendOvernightGoldMember_CalculatesCorrectFee()
@@ -462,12 +442,10 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(4700m, result.TotalFee);
 
     }
+    #endregion
 
-    
-    // ────────────────────────────────────────────────────────────
-    // LOST TICKET DURING GRACE PERIOD
-    // Grace period is free but penalty still applies
-    // ────────────────────────────────────────────────────────────
+    #region Lost Ticket During Grace Period
+    // Test that if a ticket is lost during the grace period, the lost ticket fee applies
 
     [Fact]
     public async Task FullFlow_LostTicketDuringGracePeriod_Returns20000()
@@ -491,5 +469,6 @@ public class ParkingFlowIntegrationTests
         // Assert
         Assert.Equal(20000m, result.TotalFee);
     }
+    #endregion
 }
-
+    
