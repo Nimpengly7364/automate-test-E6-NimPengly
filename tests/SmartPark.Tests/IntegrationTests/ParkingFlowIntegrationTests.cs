@@ -307,4 +307,26 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(2000m, result2.TotalFee);
         Assert.Equal(2000m, result3.TotalFee);
     }
+
+    // ────────────────────────────────────────────────────────────
+    // DUPLICATE CHECK IN
+    // Same vehicle cannot check in twice
+    // ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FullFlow_DuplicateCheckIn_ThrowsException()
+    {
+        // Arrange
+        SetTime(_baseTime);
+
+        await _manager.CheckInAsync(
+            "DUP-001",
+            VehicleType.Car);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _manager.CheckInAsync(
+                "DUP-001",
+                VehicleType.Car));
+    }
 }
