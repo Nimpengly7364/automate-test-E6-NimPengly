@@ -305,7 +305,6 @@ public class ParkingSessionManagerTests
                     It.IsAny<decimal>()),
             Times.Never);
     }
-
     [Fact]
     public async Task CheckOutAsync_AlreadyCheckedOut_ThrowException()
     {
@@ -343,6 +342,7 @@ public class ParkingSessionManagerTests
                     It.IsAny<decimal>()),
             Times.Never);
     }
+    
     #endregion
 
     #region Verify Interaction Order
