@@ -329,4 +329,69 @@ public class ParkingFlowIntegrationTests
                 "DUP-001",
                 VehicleType.Car));
     }
+
+
+    // ────────────────────────────────────────────────────────────
+    // FAILED PAYMENT
+    // Failed payment should NOT complete checkout
+    // Ticket must remain active
+    // ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FullFlow_FailedPayment_TicketRemainsActive()
+    {
+        // Arrange
+        var payment = new Mock<IPaymentGateway>();
+
+        payment.Setup(p =>
+                p.ProcessPaymentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>()))
+               .ReturnsAsync(false);
+
+        var notification = new Mock<INotificationService>();
+
+        notification.Setup(n =>
+                n.SendReceiptAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                    .Returns(Task.CompletedTask);
+
+        var membership = new Mock<IMembershipService>();
+
+        membership.Setup(m =>
+                m.GetMembershipTier(It.IsAny<string>()))
+                  .Returns(MembershipTier.Guest);
+
+        var repo = new InMemoryParkingRepository();
+
+        var manager = new ParkingSessionManager(
+            new ParkingFeeCalculator(),
+            payment.Object,
+            notification.Object,
+            membership.Object,
+            repo,
+            _clock.Object);
+
+        SetTime(_baseTime);
+
+        var ticket = await manager.CheckInAsync(
+            "FAIL-001",
+            VehicleType.Car);
+
+        SetTime(_baseTime.AddHours(2));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() =>
+            manager.CheckOutAsync(
+                ticket.TicketId,
+                "123"));
+
+        // Ticket should still be active
+        var activeTicket = await repo.GetActiveTicketByPlateAsync("FAIL-001");
+
+        Assert.NotNull(activeTicket);
+    }
+
 }
+
