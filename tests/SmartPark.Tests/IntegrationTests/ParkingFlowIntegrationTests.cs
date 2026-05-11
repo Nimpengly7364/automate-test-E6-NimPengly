@@ -462,5 +462,34 @@ public class ParkingFlowIntegrationTests
         Assert.Equal(4700m, result.TotalFee);
 
     }
+
+    
+    // ────────────────────────────────────────────────────────────
+    // LOST TICKET DURING GRACE PERIOD
+    // Grace period is free but penalty still applies
+    // ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FullFlow_LostTicketDuringGracePeriod_Returns20000()
+    {
+        // Arrange
+        SetTime(_baseTime);
+
+        var ticket = await _manager.CheckInAsync(
+            "GRACE-001",
+            VehicleType.Car);
+
+        // Only 10 minutes
+        SetTime(_baseTime.AddMinutes(10));
+
+        // Act
+        var result = await _manager.CheckOutAsync(
+            ticket.TicketId,
+            "123",
+            isLostTicket: true);
+
+        // Assert
+        Assert.Equal(20000m, result.TotalFee);
+    }
 }
 
